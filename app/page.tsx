@@ -1,66 +1,66 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+import Image from 'next/image'
+import { shopifyFetch } from '@/lib/shopify'
+import { PRODUCTS_QUERY } from '@/lib/queries'
+import type { Products } from '@/lib/types'
+import styles from './page.module.css'
 
-export default function Home() {
+export default async function Home() {
+  const data = await shopifyFetch<Products>({
+    query: PRODUCTS_QUERY,
+    variables: { first: 12 },
+    // For “live-ish” content you might use:
+    // cache: "no-store"
+    cache: 'force-cache',
+    // tags: ["products"], // if you want tag-based revalidation later
+  })
+
+  const products = data.products.edges.map((e) => e.node)
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+    <main className={styles.page}>
+      <div className={styles.shell}>
+        <header className={styles.header}>
+          <div className={styles.intro}>
+            <span className={styles.kicker}>Shopify Storefront</span>
+            <h1 className={styles.title}>Products</h1>
+            <p className={styles.subtitle}>
+              A clean, flexible catalog view you can extend with filters, collections, and rich merchandising.
+            </p>
+          </div>
+          <div className={styles.meta}>
+            <span className={styles.count}>{products.length} items</span>
+          </div>
+        </header>
+
+        <ul className={styles.grid}>
+          {products.map((p) => (
+            <li key={p.id} className={styles.card}>
+              <div className={styles.media}>
+                {p.featuredImage ? (
+                  <Image
+                    src={p.featuredImage.url}
+                    alt={p.featuredImage.altText ?? p.title}
+                    width={p.featuredImage.width}
+                    height={p.featuredImage.height}
+                    className={styles.image}
+                    sizes='(max-width: 600px) 100vw, (max-width: 1024px) 50vw, 25vw'
+                  />
+                ) : (
+                  <div className={styles.placeholder}>No image</div>
+                )}
+              </div>
+              <div className={styles.cardBody}>
+                <h2 className={styles.productTitle}>{p.title}</h2>
+                {p.description ? <p className={styles.description}>{p.description}</p> : null}
+                <div className={styles.priceRow}>
+                  <span className={styles.price}>{p.priceRange.minVariantPrice.amount}</span>
+                  <span className={styles.currency}>{p.priceRange.minVariantPrice.currencyCode}</span>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </main>
+  )
 }
