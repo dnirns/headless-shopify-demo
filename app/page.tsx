@@ -8,10 +8,8 @@ export default async function Home() {
   const data = await shopifyFetch<Products>({
     query: PRODUCTS_QUERY,
     variables: { first: 12 },
-    // For “live-ish” content you might use:
-    // cache: "no-store"
     cache: 'force-cache',
-    // tags: ["products"], // if you want tag-based revalidation later
+    // tags: ["products"],
   })
 
   const products = data.products.edges.map((e) => e.node)
