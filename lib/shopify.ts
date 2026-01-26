@@ -35,7 +35,7 @@ export const shopifyFetch = async <T>({
     },
     body: JSON.stringify({ query, variables }),
     cache,
-    ...(tags ? { next: { tags } } : {}),
+    ...(tags && cache !== 'no-store' ? { next: { tags } } : {}),
   })
 
   if (!res.ok) {

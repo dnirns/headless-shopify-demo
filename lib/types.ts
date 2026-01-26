@@ -1,6 +1,13 @@
 export type Products = {
   products: {
+    pageInfo: {
+      hasNextPage: boolean
+      hasPreviousPage: boolean
+      startCursor: string | null
+      endCursor: string | null
+    }
     edges: Array<{
+      cursor: string
       node: {
         id: string
         handle: string

@@ -1,18 +1,58 @@
 import Image from 'next/image'
+import Link from 'next/link'
 import { shopifyFetch } from '@/lib/shopify'
 import { PRODUCTS_QUERY } from '@/lib/queries'
 import type { Products } from '@/lib/types'
 import styles from './page.module.css'
 
-export default async function Home() {
+export const dynamic = 'force-dynamic'
+
+type SearchParams = { after?: string | string[]; before?: string | string[] }
+
+type ProductsPageProps = {
+  searchParams?: SearchParams | Promise<SearchParams>
+}
+
+const PAGE_SIZE = 12
+const SORT_KEY = 'CREATED_AT'
+const SORT_REVERSE = true
+
+export default async function ProductsPage({ searchParams }: ProductsPageProps) {
+  const resolvedSearchParams = await Promise.resolve(searchParams)
+  const after =
+    typeof resolvedSearchParams?.after === 'string' ? resolvedSearchParams.after : undefined
+  const before =
+    typeof resolvedSearchParams?.before === 'string' ? resolvedSearchParams.before : undefined
+  const pageParam =
+    typeof (resolvedSearchParams as { page?: string | string[] } | undefined)?.page === 'string'
+      ? (resolvedSearchParams as { page?: string }).page
+      : undefined
+  const pageNumber = Math.max(Number(pageParam ?? '1') || 1, 1)
+  const isBackward = Boolean(before && !after)
+
   const data = await shopifyFetch<Products>({
     query: PRODUCTS_QUERY,
-    variables: { first: 12 },
-    cache: 'force-cache',
-    // tags: ["products"],
+    variables: isBackward
+      ? { last: PAGE_SIZE, before, sortKey: SORT_KEY, reverse: SORT_REVERSE }
+      : { first: PAGE_SIZE, after, sortKey: SORT_KEY, reverse: SORT_REVERSE },
+    cache: 'no-store',
+    tags: ['products'],
   })
 
   const products = data.products.edges.map((e) => e.node)
+  const { pageInfo } = data.products
+  const edgeStartCursor = data.products.edges[0]?.cursor ?? null
+  const edgeEndCursor = data.products.edges[data.products.edges.length - 1]?.cursor ?? null
+  const startCursor = edgeStartCursor ?? pageInfo.startCursor
+  const endCursor = edgeEndCursor ?? pageInfo.endCursor
+  const prevHref =
+    pageInfo.hasPreviousPage && startCursor
+      ? `/products?before=${encodeURIComponent(startCursor)}&page=${Math.max(pageNumber - 1, 1)}`
+      : null
+  const nextHref =
+    pageInfo.hasNextPage && endCursor
+      ? `/products?after=${encodeURIComponent(endCursor)}&page=${pageNumber + 1}`
+      : null
 
   return (
     <main className={styles.page}>
@@ -60,6 +100,27 @@ export default async function Home() {
             </li>
           ))}
         </ul>
+
+        <nav className={styles.pagination} aria-label='Pagination'>
+          {prevHref ? (
+            <Link className={styles.pageLink} href={prevHref} rel='prev' prefetch={false}>
+              Previous
+            </Link>
+          ) : (
+            <span className={`${styles.pageLink} ${styles.pageLinkDisabled}`}>Previous</span>
+          )}
+
+          <span className={styles.pageIndicator}>Page {pageNumber}</span>
+
+          {nextHref ? (
+            <Link className={styles.pageLink} href={nextHref} rel='next' prefetch={false}>
+              Next
+            </Link>
+          ) : (
+            <span className={`${styles.pageLink} ${styles.pageLinkDisabled}`}>Next</span>
+          )}
+        </nav>
+
       </div>
     </main>
   )
