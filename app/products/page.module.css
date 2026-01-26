@@ -153,19 +153,19 @@
   color: var(--muted);
 }
 
-.pagination {
+.loadMoreContainer {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 18px;
+  justify-content: center;
+  padding-top: 32px;
+  margin-top: 18px;
   border-top: 1px solid rgba(31, 30, 28, 0.12);
 }
 
-.pageLink {
+.loadMoreButton {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 18px;
+  padding: 12px 32px;
   border-radius: 999px;
   border: 1px solid rgba(31, 30, 28, 0.16);
   background: rgba(255, 255, 255, 0.85);
@@ -173,21 +173,16 @@
   font-size: 13px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  text-decoration: none;
+  font-weight: 500;
+  cursor: pointer;
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
 }
 
-.pageLinkDisabled {
-  opacity: 0.45;
-}
-
-.pageIndicator {
-  font-size: 12px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--muted);
+.loadMoreButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -196,8 +191,8 @@
     box-shadow: 0 18px 30px rgba(0, 0, 0, 0.12);
   }
 
-  .pageLink:hover {
-    transform: translateY(-1px);
+  .loadMoreButton:hover:not(:disabled) {
+    transform: translateY(-2px);
     box-shadow: 0 10px 18px rgba(0, 0, 0, 0.12);
   }
 }
@@ -235,11 +230,11 @@
     box-shadow: 0 16px 26px rgba(0, 0, 0, 0.35);
   }
 
-  .pagination {
+  .loadMoreContainer {
     border-top-color: rgba(255, 255, 255, 0.12);
   }
 
-  .pageLink {
+  .loadMoreButton {
     border-color: rgba(255, 255, 255, 0.18);
     background: rgba(18, 18, 18, 0.8);
   }
